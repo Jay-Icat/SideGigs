@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/glass_theme.dart';
 import '../services/gig_store.dart';
+import '../utils/responsive.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_text_field.dart';
@@ -101,51 +102,54 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return GlassScaffold(
       title: 'Post a Gig',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: Responsive.pagePadding(context),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 820),
+            constraints:
+                const BoxConstraints(maxWidth: Responsive.maxContentWidth),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Top Header Card
                 GlassContainer(
-                  borderRadius: 22,
+                  borderRadius: isMobile ? 20 : 24,
                   glowColor: GlassTheme.cyanAccent,
-                  padding: const EdgeInsets.all(22),
+                  padding: EdgeInsets.all(isMobile ? 18 : 22),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: GlassTheme.buttonGradient,
                         ),
                         child: const Icon(Icons.add_task_rounded,
-                            color: Colors.white, size: 26),
+                            color: Colors.white, size: 24),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Create Service / Gig Listing',
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: isMobile ? 17 : 20,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Specify what you need done, set the proposed budget amount, and receive applications.',
+                              'Set your proposed budget amount, and receive applications & counter-offers.',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.white.withOpacity(0.7),
+                                color: GlassTheme.op(Colors.white, 0.7),
                               ),
                             ),
                           ],
@@ -155,12 +159,12 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
                 // Form Container
                 GlassContainer(
-                  borderRadius: 24,
-                  padding: const EdgeInsets.all(26),
+                  borderRadius: isMobile ? 20 : 24,
+                  padding: EdgeInsets.all(isMobile ? 18 : 26),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -176,11 +180,12 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                       const SizedBox(height: 8),
                       GlassTextField(
                         controller: _titleController,
-                        hintText: 'e.g. Build Super Glass UI landing page in Flutter Web',
+                        hintText:
+                            'e.g. Build Super Glass UI landing page in Flutter Web',
                         prefixIcon: Icons.title_rounded,
                       ),
 
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 20),
 
                       // Category Selector
                       const Text(
@@ -193,27 +198,29 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                       ),
                       const SizedBox(height: 10),
                       Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: _categories.map((cat) {
                           final isSelected = _selectedCategory == cat;
                           return InkWell(
-                            onTap: () => setState(() => _selectedCategory = cat),
-                            borderRadius: BorderRadius.circular(20),
+                            onTap: () =>
+                                setState(() => _selectedCategory = cat),
+                            borderRadius: BorderRadius.circular(18),
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
+                              duration: const Duration(milliseconds: 180),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
+                                  horizontal: 14, vertical: 7),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? GlassTheme.cyanAccent.withOpacity(0.25)
-                                    : Colors.white.withOpacity(0.06),
-                                borderRadius: BorderRadius.circular(20),
+                                    ? GlassTheme.op(
+                                        GlassTheme.cyanAccent, 0.22)
+                                    : GlassTheme.op(Colors.white, 0.06),
+                                borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
                                   color: isSelected
                                       ? GlassTheme.cyanAccent
-                                      : Colors.white.withOpacity(0.15),
-                                  width: isSelected ? 1.5 : 1.0,
+                                      : GlassTheme.op(Colors.white, 0.15),
+                                  width: isSelected ? 1.4 : 1.0,
                                 ),
                               ),
                               child: Text(
@@ -221,11 +228,11 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                                 style: TextStyle(
                                   color: isSelected
                                       ? Colors.white
-                                      : Colors.white.withOpacity(0.7),
+                                      : GlassTheme.op(Colors.white, 0.7),
                                   fontWeight: isSelected
                                       ? FontWeight.w700
                                       : FontWeight.w500,
-                                  fontSize: 13,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),
@@ -233,95 +240,86 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                         }).toList(),
                       ),
 
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 20),
 
-                      // Budget & Delivery Row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // Budget & Delivery (Responsive layout)
+                      ResponsiveRowColumn(
+                        spacing: 14,
+                        forceColumn: isMobile,
                         children: [
-                          // Budget Field
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Gig Amount (\$ USD)',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Gig Amount (\$ USD)',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 ),
-                                const SizedBox(height: 8),
-                                GlassTextField(
-                                  controller: _budgetController,
-                                  hintText: '350',
-                                  prefixIcon: Icons.attach_money_rounded,
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 8),
+                              GlassTextField(
+                                controller: _budgetController,
+                                hintText: '350',
+                                prefixIcon: Icons.attach_money_rounded,
+                                keyboardType: TextInputType.number,
+                                onChanged: (_) => setState(() {}),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          // Expected Timeline
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Delivery Time',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Delivery Time',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: GlassTheme.op(Colors.white, 0.06),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: GlassTheme.op(Colors.white, 0.18),
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.06),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.18),
-                                    ),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: _selectedTimeline,
-                                      dropdownColor: const Color(0xFF131B2E),
-                                      icon: const Icon(Icons.arrow_drop_down,
-                                          color: Colors.white70),
-                                      isExpanded: true,
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                      items: _timelines.map((t) {
-                                        return DropdownMenuItem(
-                                          value: t,
-                                          child: Text(t),
-                                        );
-                                      }).toList(),
-                                      onChanged: (v) {
-                                        if (v != null) {
-                                          setState(() => _selectedTimeline = v);
-                                        }
-                                      },
-                                    ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedTimeline,
+                                    dropdownColor: const Color(0xFF131B2E),
+                                    icon: const Icon(Icons.arrow_drop_down,
+                                        color: Colors.white70),
+                                    isExpanded: true,
+                                    style: const TextStyle(color: Colors.white),
+                                    items: _timelines.map((t) {
+                                      return DropdownMenuItem(
+                                        value: t,
+                                        child: Text(t),
+                                      );
+                                    }).toList(),
+                                    onChanged: (v) {
+                                      if (v != null) {
+                                        setState(() => _selectedTimeline = v);
+                                      }
+                                    },
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 20),
 
-                      // Platform Fee Transparency Breakdown Card
+                      // Platform Fee Transparency Card
                       GlassContainer(
                         borderRadius: 18,
                         glowColor: GlassTheme.violetAccent,
@@ -340,7 +338,7 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                                     Text(
                                       'Platform Fee Transparency (10%)',
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
+                                        color: GlassTheme.op(Colors.white, 0.9),
                                         fontWeight: FontWeight.w700,
                                         fontSize: 13,
                                       ),
@@ -351,12 +349,12 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: GlassTheme.violetAccent
-                                        .withOpacity(0.2),
+                                    color: GlassTheme.op(
+                                        GlassTheme.violetAccent, 0.2),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
-                                    'Standard Tier',
+                                    '10% Platform Fee',
                                     style: TextStyle(
                                       color: GlassTheme.violetAccent,
                                       fontSize: 11,
@@ -368,14 +366,16 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                             ),
                             const SizedBox(height: 12),
                             Divider(
-                                color: Colors.white.withOpacity(0.1), height: 1),
+                                color: GlassTheme.op(Colors.white, 0.1),
+                                height: 1),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text('Set Gig Amount:',
                                     style: TextStyle(
-                                        color: Colors.white.withOpacity(0.7))),
+                                        color:
+                                            GlassTheme.op(Colors.white, 0.7))),
                                 Text('\$${_budget.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                         color: Colors.white,
@@ -388,7 +388,8 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                               children: [
                                 Text('SideGigs Platform Fee (10%):',
                                     style: TextStyle(
-                                        color: Colors.white.withOpacity(0.7))),
+                                        color:
+                                            GlassTheme.op(Colors.white, 0.7))),
                                 Text('-\$${_platformFee.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                         color: GlassTheme.amberAccent,
@@ -403,7 +404,8 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700)),
-                                Text('\$${_freelancerPayout.toStringAsFixed(2)}',
+                                Text(
+                                    '\$${_freelancerPayout.toStringAsFixed(2)}',
                                     style: const TextStyle(
                                         color: GlassTheme.emeraldAccent,
                                         fontSize: 16,
@@ -414,7 +416,7 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 20),
 
                       // Description
                       const Text(
@@ -430,25 +432,26 @@ class _PostGigsScreenState extends State<PostGigsScreen> {
                         controller: _descController,
                         hintText:
                             'Describe what you are looking for, expected milestones, acceptance criteria, etc...',
-                        maxLines: 5,
+                        maxLines: 4,
                       ),
 
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 26),
 
-                      // Submit & Cancel Buttons
-                      Row(
+                      // Submit & Cancel Buttons (Responsive layout)
+                      ResponsiveRowColumn(
+                        spacing: 12,
+                        forceColumn: isMobile,
                         children: [
-                          Expanded(
-                            child: GlassButton(
-                              text: 'Publish Gig Listing',
-                              icon: Icons.rocket_launch_rounded,
-                              onPressed: _publishGig,
-                            ),
+                          GlassButton(
+                            text: 'Publish Gig Listing',
+                            icon: Icons.rocket_launch_rounded,
+                            height: 48,
+                            onPressed: _publishGig,
                           ),
-                          const SizedBox(width: 14),
                           GlassButton(
                             text: 'Back to Home',
                             isPrimary: false,
+                            height: 48,
                             icon: Icons.arrow_back_rounded,
                             onPressed: () => Navigator.of(context).pop(),
                           ),

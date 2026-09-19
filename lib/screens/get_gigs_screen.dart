@@ -7,6 +7,7 @@ import '../widgets/glass_button.dart';
 import '../widgets/glass_text_field.dart';
 import '../widgets/glass_scaffold.dart';
 import '../widgets/create_gig_dialog.dart';
+import '../utils/responsive.dart';
 
 class GetGigsScreen extends StatefulWidget {
   const GetGigsScreen({super.key});
@@ -230,6 +231,8 @@ class _GetGigsScreenState extends State<GetGigsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return GlassScaffold(
       title: 'Get Gigs / Marketplace',
       actions: [
@@ -241,33 +244,51 @@ class _GetGigsScreenState extends State<GetGigsScreen> {
         ),
       ],
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: Responsive.pagePadding(context),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1020),
+            constraints:
+                const BoxConstraints(maxWidth: Responsive.maxContentWidth),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Search & Filter Header
-                Row(
-                  children: [
-                    Expanded(
-                      child: GlassTextField(
-                        controller: _searchController,
-                        hintText: 'Search marketplace gigs by skill, title, or client...',
-                        prefixIcon: Icons.search_rounded,
-                        onChanged: (v) => setState(() => _searchQuery = v),
+                // Search & Filter Header (Responsive)
+                if (isMobile) ...[
+                  GlassTextField(
+                    controller: _searchController,
+                    hintText: 'Search gigs by skill, title, or client...',
+                    prefixIcon: Icons.search_rounded,
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                  ),
+                  const SizedBox(height: 10),
+                  GlassButton(
+                    text: '+ Post a New Gig',
+                    icon: Icons.add_rounded,
+                    height: 44,
+                    onPressed: () => CreateGigDialog.show(context),
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GlassTextField(
+                          controller: _searchController,
+                          hintText:
+                              'Search marketplace gigs by skill, title, or client...',
+                          prefixIcon: Icons.search_rounded,
+                          onChanged: (v) => setState(() => _searchQuery = v),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    GlassButton(
-                      text: '+ Post Gig',
-                      icon: Icons.add_rounded,
-                      height: 48,
-                      onPressed: () => CreateGigDialog.show(context),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 12),
+                      GlassButton(
+                        text: '+ Post Gig',
+                        icon: Icons.add_rounded,
+                        height: 48,
+                        onPressed: () => CreateGigDialog.show(context),
+                      ),
+                    ],
+                  ),
+                ],
 
                 const SizedBox(height: 16),
 
@@ -377,6 +398,8 @@ class _GetGigsScreenState extends State<GetGigsScreen> {
   }
 
   Widget _buildGigCard(Gig gig) {
+    final isMobile = Responsive.isMobile(context);
+
     return GlassContainer(
       borderRadius: 22,
       glowColor: gig.status == 'accepted'
@@ -538,44 +561,47 @@ class _GetGigsScreenState extends State<GetGigsScreen> {
 
           // Action Buttons: Accept / Negotiate / Reject
           if (gig.status == 'open') ...[
-            Row(
+            ResponsiveRowColumn(
+              spacing: 8,
+              forceColumn: isMobile,
               children: [
-                Expanded(
-                  child: GlassButton(
-                    text: 'Accept (\$${gig.budget.toStringAsFixed(0)})',
-                    icon: Icons.check_rounded,
-                    height: 44,
-                    gradient: GlassTheme.emeraldGradient,
-                    onPressed: () {
-                      _store.acceptGig(gig.id);
-                      _showToast(
-                        'Accepted! \$${gig.budget.toStringAsFixed(0)} secured in Escrow.',
-                        GlassTheme.emeraldAccent,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GlassButton(
-                    text: 'Negotiate',
-                    icon: Icons.handshake_outlined,
-                    height: 44,
-                    isPrimary: false,
-                    textColor: GlassTheme.cyanAccent,
-                    onPressed: () => _showNegotiateDialog(gig),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  tooltip: 'Decline Gig',
-                  icon: Icon(Icons.close_rounded,
-                      color: Colors.redAccent.withValues(alpha: 0.8),
-                      size: 20),
+                GlassButton(
+                  text: 'Accept (\$${gig.budget.toStringAsFixed(0)})',
+                  icon: Icons.check_rounded,
+                  height: 42,
+                  gradient: GlassTheme.emeraldGradient,
                   onPressed: () {
-                    _store.declineGig(gig.id);
-                    _showToast('Gig declined.', Colors.redAccent);
+                    _store.acceptGig(gig.id);
+                    _showToast(
+                      'Accepted! \$${gig.budget.toStringAsFixed(0)} secured in Escrow.',
+                      GlassTheme.emeraldAccent,
+                    );
                   },
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GlassButton(
+                        text: 'Negotiate',
+                        icon: Icons.handshake_outlined,
+                        height: 42,
+                        isPrimary: false,
+                        textColor: GlassTheme.cyanAccent,
+                        onPressed: () => _showNegotiateDialog(gig),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Decline Gig',
+                      icon: Icon(Icons.close_rounded,
+                          color: Colors.redAccent.withValues(alpha: 0.8),
+                          size: 20),
+                      onPressed: () {
+                        _store.declineGig(gig.id);
+                        _showToast('Gig declined.', Colors.redAccent);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

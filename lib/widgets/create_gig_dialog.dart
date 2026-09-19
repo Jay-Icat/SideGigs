@@ -221,14 +221,14 @@ class _CreateGigDialogState extends State<CreateGigDialog> {
 
                 const SizedBox(height: 16),
 
-                // Budget & Timeline
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // Budget & Timeline (Responsive)
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 400;
+
+                    if (isNarrow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const Text(
                             'Budget Amount (\$)',
@@ -245,15 +245,7 @@ class _CreateGigDialogState extends State<CreateGigDialog> {
                             keyboardType: TextInputType.number,
                             onChanged: (_) => setState(() {}),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                          const SizedBox(height: 14),
                           const Text(
                             'Delivery Time',
                             style: TextStyle(
@@ -262,41 +254,60 @@ class _CreateGigDialogState extends State<CreateGigDialog> {
                                 color: Colors.white),
                           ),
                           const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: GlassTheme.op(Colors.white, 0.06),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: GlassTheme.op(Colors.white, 0.18),
-                              ),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: _selectedDelivery,
-                                dropdownColor: const Color(0xFF131B2E),
-                                icon: const Icon(Icons.arrow_drop_down,
-                                    color: Colors.white70),
-                                isExpanded: true,
-                                style: const TextStyle(color: Colors.white),
-                                items: _timelines
-                                    .map((t) => DropdownMenuItem(
-                                        value: t, child: Text(t)))
-                                    .toList(),
-                                onChanged: (v) {
-                                  if (v != null) {
-                                    setState(() => _selectedDelivery = v);
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
+                          _buildDeliveryDropdown(),
                         ],
-                      ),
-                    ),
-                  ],
+                      );
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Budget Amount (\$)',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white),
+                              ),
+                              const SizedBox(height: 8),
+                              GlassTextField(
+                                controller: _budgetController,
+                                hintText: '400',
+                                prefixIcon: Icons.attach_money_rounded,
+                                keyboardType: TextInputType.number,
+                                onChanged: (_) => setState(() {}),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Delivery Time',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildDeliveryDropdown(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
+
 
                 const SizedBox(height: 16),
 
@@ -361,6 +372,36 @@ class _CreateGigDialogState extends State<CreateGigDialog> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeliveryDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        color: GlassTheme.op(Colors.white, 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: GlassTheme.op(Colors.white, 0.18),
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedDelivery,
+          dropdownColor: const Color(0xFF131B2E),
+          icon: const Icon(Icons.arrow_drop_down, color: Colors.white70),
+          isExpanded: true,
+          style: const TextStyle(color: Colors.white),
+          items: _timelines
+              .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() => _selectedDelivery = v);
+            }
+          },
         ),
       ),
     );

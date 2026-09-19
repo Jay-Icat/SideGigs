@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import '../theme/glass_theme.dart';
 import '../models/gig_model.dart';
 import '../services/gig_store.dart';
+import '../utils/responsive.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_text_field.dart';
 import '../widgets/glass_scaffold.dart';
 import '../widgets/create_gig_dialog.dart';
+import '../widgets/adaptive_glass_nav.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'post_gigs_screen.dart';
@@ -25,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _activeFilter = 'All';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  int _mobileNavIndex = 0;
 
   final List<String> _filters = [
     'All',
@@ -64,6 +67,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _onMobileNavSelect(int index) {
+    setState(() => _mobileNavIndex = index);
+    switch (index) {
+      case 0:
+        // Already on Feed
+        break;
+      case 1:
+        _nav(context, const GetGigsScreen());
+        break;
+      case 2:
+        CreateGigDialog.show(context);
+        break;
+      case 3:
+        _nav(context, const ProfileScreen());
+        break;
+      case 4:
+        _nav(context, const SettingsScreen());
+        break;
+    }
+  }
+
   void _showNegotiateModal(Gig gig) {
     final counterController =
         TextEditingController(text: (gig.budget + 50).toStringAsFixed(0));
@@ -82,119 +106,125 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return Dialog(
               backgroundColor: Colors.transparent,
+              insetPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
                 child: GlassContainer(
                   borderRadius: 26,
                   glowColor: GlassTheme.cyanAccent,
-                  padding: const EdgeInsets.all(26),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: GlassTheme.accentGradient,
-                            ),
-                            child: const Icon(Icons.handshake_outlined,
-                                color: Colors.white, size: 22),
-                          ),
-                          const SizedBox(width: 14),
-                          const Expanded(
-                            child: Text(
-                              'Negotiate Gig Amount',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Original Budget Set by Poster: \$${gig.budget.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          color: GlassTheme.op(Colors.white, 0.7),
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Your Proposed Counter Amount (\$)',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      GlassTextField(
-                        controller: counterController,
-                        hintText: 'Enter counter amount',
-                        prefixIcon: Icons.attach_money_rounded,
-                        keyboardType: TextInputType.number,
-                        onChanged: (_) => setDialogState(() {}),
-                      ),
-                      const SizedBox(height: 12),
-                      // Fee breakdown
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: GlassTheme.op(Colors.white, 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: GlassTheme.op(Colors.white, 0.12),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  padding: const EdgeInsets.all(24),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              'Platform Fee (10%): -\$${fee.toStringAsFixed(1)}',
-                              style: TextStyle(
-                                color: GlassTheme.op(Colors.white, 0.65),
-                                fontSize: 12,
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: GlassTheme.accentGradient,
                               ),
+                              child: const Icon(Icons.handshake_outlined,
+                                  color: Colors.white, size: 20),
                             ),
-                            Text(
-                              'Your Payout: \$${payout.toStringAsFixed(1)}',
-                              style: const TextStyle(
-                                color: GlassTheme.emeraldAccent,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'Negotiate Amount',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Negotiation Note / Scope Justification',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                        const SizedBox(height: 14),
+                        Text(
+                          'Original Budget Set by Poster: \$${gig.budget.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            color: GlassTheme.op(Colors.white, 0.7),
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      GlassTextField(
-                        controller: noteController,
-                        hintText: 'Why this counter-offer fits the requirements...',
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: 22),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GlassButton(
+                        const SizedBox(height: 14),
+                        const Text(
+                          'Your Proposed Counter Amount (\$)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GlassTextField(
+                          controller: counterController,
+                          hintText: 'Enter counter amount',
+                          prefixIcon: Icons.attach_money_rounded,
+                          keyboardType: TextInputType.number,
+                          onChanged: (_) => setDialogState(() {}),
+                        ),
+                        const SizedBox(height: 12),
+                        // Fee breakdown
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: GlassTheme.op(Colors.white, 0.06),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: GlassTheme.op(Colors.white, 0.12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Platform Fee (10%): -\$${fee.toStringAsFixed(1)}',
+                                style: TextStyle(
+                                  color: GlassTheme.op(Colors.white, 0.65),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                'Your Payout: \$${payout.toStringAsFixed(1)}',
+                                style: const TextStyle(
+                                  color: GlassTheme.emeraldAccent,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        const Text(
+                          'Negotiation Note / Scope Justification',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GlassTextField(
+                          controller: noteController,
+                          hintText:
+                              'Why this counter-offer fits the requirements...',
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 20),
+                        ResponsiveRowColumn(
+                          spacing: 10,
+                          forceColumn: Responsive.isMobile(context),
+                          children: [
+                            GlassButton(
                               text: 'Submit Counter-Offer',
                               icon: Icons.send_rounded,
+                              height: 46,
                               onPressed: () {
                                 _gigStore.negotiateGig(
                                   gig.id,
@@ -208,16 +238,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          GlassButton(
-                            text: 'Cancel',
-                            isPrimary: false,
-                            onPressed: () => Navigator.of(ctx).pop(),
-                          ),
-                        ],
-                      ),
-                    ],
+                            GlassButton(
+                              text: 'Cancel',
+                              isPrimary: false,
+                              height: 46,
+                              onPressed: () => Navigator.of(ctx).pop(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -236,16 +266,18 @@ class _HomeScreenState extends State<HomeScreen> {
         content: GlassContainer(
           borderRadius: 16,
           glowColor: color,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
           child: Row(
             children: [
-              Icon(Icons.check_circle_rounded, color: color, size: 22),
-              const SizedBox(width: 12),
+              Icon(Icons.check_circle_rounded, color: color, size: 20),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   message,
                   style: const TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w600),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13),
                 ),
               ),
             ],
@@ -257,37 +289,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return GlassScaffold(
       showBackButton: false,
+      bottomNavigationBar: isMobile
+          ? AdaptiveGlassBottomNav(
+              currentIndex: _mobileNavIndex,
+              onTabSelected: _onMobileNavSelect,
+            )
+          : null,
       body: Column(
         children: [
-          // 1. Top Glass Navigation Bar
-          _buildProperNavBar(context),
+          // Top Navigation (Desktop/Tablet) or Mobile Brand Bar
+          if (!isMobile)
+            _buildDesktopNavBar(context)
+          else
+            _buildMobileTopBar(context),
 
-          // 2. Main Scrollable Content
+          // Main Scrollable Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: Responsive.pagePadding(context),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1160),
+                  constraints:
+                      const BoxConstraints(maxWidth: Responsive.maxContentWidth),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Basic Gig Poster Banner CTA
-                      _buildGigPosterBanner(context),
+                      // Responsive Banner CTA
+                      _buildResponsiveBanner(context),
+
+                      const SizedBox(height: 20),
+
+                      // Responsive Metrics (2x2 grid on mobile, 4-across on desktop)
+                      _buildResponsiveMetrics(context),
 
                       const SizedBox(height: 24),
 
-                      // Platform Metrics Glass Ribbon
-                      _buildMetricsRibbon(),
+                      // Demo Gigs Header, Search & Filters
+                      _buildResponsiveHeader(context),
 
-                      const SizedBox(height: 28),
-
-                      // Marketplace Demo Gigs Header & Filters
-                      _buildDemoGigsHeader(),
-
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
 
                       // Live Demo Gigs List
                       ListenableBuilder(
@@ -309,23 +353,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (filtered.isEmpty) {
                             return GlassContainer(
                               borderRadius: 20,
-                              padding: const EdgeInsets.all(40),
+                              padding: const EdgeInsets.all(36),
                               child: Center(
                                 child: Column(
                                   children: [
                                     const Icon(Icons.inbox_outlined,
-                                        size: 48, color: Colors.white38),
-                                    const SizedBox(height: 12),
+                                        size: 44, color: Colors.white38),
+                                    const SizedBox(height: 10),
                                     const Text(
                                       'No gigs found for this filter',
                                       style: TextStyle(
                                           color: Colors.white70,
-                                          fontSize: 16,
+                                          fontSize: 15,
                                           fontWeight: FontWeight.w600),
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(height: 14),
                                     GlassButton(
-                                      text: 'Post the First One',
+                                      text: 'Post a Gig Now',
                                       icon: Icons.add_rounded,
                                       onPressed: () =>
                                           CreateGigDialog.show(context),
@@ -341,15 +385,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: filtered.length,
                             separatorBuilder: (_, __) =>
-                                const SizedBox(height: 18),
+                                const SizedBox(height: 16),
                             itemBuilder: (context, idx) {
-                              return _buildDemoGigCard(filtered[idx]);
+                              return _buildResponsiveGigCard(
+                                  context, filtered[idx]);
                             },
                           );
                         },
                       ),
 
-                      const SizedBox(height: 40),
+                      // Bottom spacing for mobile bottom bar
+                      if (isMobile) const SizedBox(height: 70),
                     ],
                   ),
                 ),
@@ -361,14 +407,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Proper Glass Navigation Bar
-  Widget _buildProperNavBar(BuildContext context) {
+  // Desktop / Tablet Top Glass Navigation Bar
+  Widget _buildDesktopNavBar(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      margin: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
         color: GlassTheme.op(Colors.white, 0.07),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: GlassTheme.op(Colors.white, 0.16),
           width: 1.2,
@@ -377,38 +423,34 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Row(
         children: [
-          // Logo & Brand
-          InkWell(
-            onTap: () {},
-            borderRadius: BorderRadius.circular(12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: GlassTheme.buttonGradient,
-                  ),
-                  child: const Icon(Icons.work_rounded,
-                      color: Colors.white, size: 18),
+          // Brand Logo
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: GlassTheme.buttonGradient,
                 ),
-                const SizedBox(width: 10),
-                const Text(
-                  'SideGigs',
-                  style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.3,
-                    color: Colors.white,
-                  ),
+                child: const Icon(Icons.work_rounded,
+                    color: Colors.white, size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'SideGigs',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.3,
+                  color: Colors.white,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
 
           const SizedBox(width: 24),
 
-          // Center Navigation Tabs
+          // Tabs
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -455,7 +497,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(width: 12),
 
-          // "+ Post Gig" CTA Button in Navigation
+          // "+ Post Gig" CTA
           GlassButton(
             text: 'Post a Gig',
             icon: Icons.add_rounded,
@@ -466,98 +508,146 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(width: 10),
 
-          // User Profile Pill & Sign Out
-          PopupMenuButton<String>(
-            tooltip: 'User Menu',
-            color: const Color(0xFF131B2E),
-            offset: const Offset(0, 48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: GlassTheme.op(Colors.white, 0.15)),
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: GlassTheme.op(Colors.white, 0.08),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: GlassTheme.op(Colors.white, 0.2)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: GlassTheme.accentGradient,
-                    ),
-                    child: const Center(
-                      child: Text('A',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800)),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text('Alex',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white70, size: 16),
-                ],
-              ),
-            ),
-            onSelected: (val) {
-              if (val == 'profile') _nav(context, const ProfileScreen());
-              if (val == 'settings') _nav(context, const SettingsScreen());
-              if (val == 'logout') {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline, color: Colors.white70, size: 18),
-                    SizedBox(width: 10),
-                    Text('My Profile & Wallet'),
-                  ],
+          // Profile Pill Menu
+          _buildUserDropdown(context),
+        ],
+      ),
+    );
+  }
+
+  // Mobile Top Bar
+  Widget _buildMobileTopBar(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: GlassTheme.op(Colors.white, 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: GlassTheme.op(Colors.white, 0.16),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: GlassTheme.buttonGradient,
                 ),
+                child: const Icon(Icons.work_rounded,
+                    color: Colors.white, size: 16),
               ),
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings_outlined,
-                        color: Colors.white70, size: 18),
-                    SizedBox(width: 10),
-                    Text('Platform Settings'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout_rounded,
-                        color: Colors.redAccent, size: 18),
-                    SizedBox(width: 10),
-                    Text('Log Out', style: TextStyle(color: Colors.redAccent)),
-                  ],
+              const SizedBox(width: 8),
+              const Text(
+                'SideGigs',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.3,
+                  color: Colors.white,
                 ),
               ),
             ],
           ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: GlassTheme.op(GlassTheme.emeraldAccent, 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: GlassTheme.op(GlassTheme.emeraldAccent, 0.3)),
+                ),
+                child: const Text(
+                  '10% Fee',
+                  style: TextStyle(
+                    color: GlassTheme.emeraldAccent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _buildUserDropdown(context),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUserDropdown(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'User Menu',
+      color: const Color(0xFF131B2E),
+      offset: const Offset(0, 44),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: GlassTheme.op(Colors.white, 0.15)),
+      ),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: GlassTheme.accentGradient,
+        ),
+        child: const Center(
+          child: Text('A',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800)),
+        ),
+      ),
+      onSelected: (val) {
+        if (val == 'profile') _nav(context, const ProfileScreen());
+        if (val == 'settings') _nav(context, const SettingsScreen());
+        if (val == 'logout') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(Icons.person_outline, color: Colors.white70, size: 18),
+              SizedBox(width: 10),
+              Text('My Profile'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'settings',
+          child: Row(
+            children: [
+              Icon(Icons.tune_rounded, color: Colors.white70, size: 18),
+              SizedBox(width: 10),
+              Text('Platform Settings'),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout_rounded, color: Colors.redAccent, size: 18),
+              SizedBox(width: 10),
+              Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -571,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
@@ -610,71 +700,153 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Basic Gig Poster Banner
-  Widget _buildGigPosterBanner(BuildContext context) {
+  // Responsive Banner (Row on desktop, Stacked column on mobile)
+  Widget _buildResponsiveBanner(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return GlassContainer(
-      borderRadius: 24,
+      borderRadius: isMobile ? 20 : 24,
       glowColor: GlassTheme.cyanAccent,
-      padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: GlassTheme.buttonGradient,
-              boxShadow: [
-                BoxShadow(
-                  color: GlassTheme.op(GlassTheme.cyanAccent, 0.4),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const Icon(Icons.flash_on_rounded,
-                color: Colors.white, size: 30),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.all(isMobile ? 18 : 24),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Post a Gig or Offer a Service',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: GlassTheme.buttonGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                GlassTheme.op(GlassTheme.cyanAccent, 0.35),
+                            blurRadius: 14,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.flash_on_rounded,
+                          color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Text(
+                        'Post or Find Gigs',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 10),
                 Text(
-                  'Set your budget amount. Applicants can accept, propose counter-offers, or reject. SideGigs takes a 10% platform fee on settlement.',
+                  'Set your budget. Freelancers can accept, propose counter-offers, or decline. 10% platform fee.',
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.4,
                     color: GlassTheme.op(Colors.white, 0.75),
                   ),
                 ),
+                const SizedBox(height: 16),
+                GlassButton(
+                  text: 'Create a Gig Listing',
+                  icon: Icons.rocket_launch_rounded,
+                  height: 46,
+                  onPressed: () => CreateGigDialog.show(context),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: GlassTheme.buttonGradient,
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            GlassTheme.op(GlassTheme.cyanAccent, 0.4),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.flash_on_rounded,
+                      color: Colors.white, size: 28),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Post a Gig or Offer a Service',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Set your budget amount. Applicants can accept, propose counter-offers, or reject. SideGigs takes a 10% platform fee on settlement.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          color: GlassTheme.op(Colors.white, 0.75),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                GlassButton(
+                  text: 'Create Gig Listing',
+                  icon: Icons.rocket_launch_rounded,
+                  onPressed: () => CreateGigDialog.show(context),
+                ),
               ],
             ),
-          ),
-          const SizedBox(width: 20),
-          GlassButton(
-            text: 'Create Gig Listing',
-            icon: Icons.rocket_launch_rounded,
-            onPressed: () => CreateGigDialog.show(context),
-          ),
-        ],
-      ),
     );
   }
 
-  // Metrics Ribbon
-  Widget _buildMetricsRibbon() {
+  // Responsive Metrics (2x2 Grid on Mobile, 4-Across Ribbon on Desktop)
+  Widget _buildResponsiveMetrics(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return ListenableBuilder(
       listenable: _gigStore,
       builder: (context, _) {
+        if (isMobile) {
+          return GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 2.1,
+            children: [
+              _buildMetricMiniCard('Active Gigs',
+                  '${_gigStore.totalGigsCount}', GlassTheme.cyanAccent),
+              _buildMetricMiniCard(
+                  'Negotiating',
+                  '${_gigStore.activeNegotiationsCount}',
+                  GlassTheme.amberAccent),
+              _buildMetricMiniCard('Platform Fee', '10%', GlassTheme.violetAccent),
+              _buildMetricMiniCard(
+                  'Escrow Held',
+                  '\$${_gigStore.totalEscrowAmount.toStringAsFixed(0)}',
+                  GlassTheme.emeraldAccent),
+            ],
+          );
+        }
+
         return GlassContainer(
           borderRadius: 20,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -699,6 +871,35 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMetricMiniCard(String label, String value, Color color) {
+    return GlassContainer(
+      borderRadius: 16,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: GlassTheme.op(Colors.white, 0.6),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -734,52 +935,71 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Demo Gigs Header & Filters
-  Widget _buildDemoGigsHeader() {
+  // Responsive Header with Adaptive Search & Categories
+  Widget _buildResponsiveHeader(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Live Demo Gigs',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Test accepting, negotiating counter-offers, and posting real-time gigs below',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: GlassTheme.op(Colors.white, 0.65),
-                  ),
-                ),
-              ],
+        if (isMobile) ...[
+          const Text(
+            'Live Demo Gigs',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
             ),
-            // Search field
-            SizedBox(
-              width: 260,
-              child: GlassTextField(
-                controller: _searchController,
-                hintText: 'Search gigs...',
-                prefixIcon: Icons.search_rounded,
-                onChanged: (v) => setState(() => _searchQuery = v),
+          ),
+          const SizedBox(height: 10),
+          GlassTextField(
+            controller: _searchController,
+            hintText: 'Search gigs...',
+            prefixIcon: Icons.search_rounded,
+            onChanged: (v) => setState(() => _searchQuery = v),
+          ),
+        ] else ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Live Demo Gigs',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Accept, negotiate counter-offers, and post real-time gigs below',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: GlassTheme.op(Colors.white, 0.65),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
+              SizedBox(
+                width: 260,
+                child: GlassTextField(
+                  controller: _searchController,
+                  hintText: 'Search gigs...',
+                  prefixIcon: Icons.search_rounded,
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                ),
+              ),
+            ],
+          ),
+        ],
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
-        // Category Filter Chips
+        // Filter chips with horizontal scroll
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -789,15 +1009,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.only(right: 8),
                 child: InkWell(
                   onTap: () => setState(() => _activeFilter = f),
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                        const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
                     decoration: BoxDecoration(
                       color: isSel
                           ? GlassTheme.op(GlassTheme.cyanAccent, 0.22)
                           : GlassTheme.op(Colors.white, 0.06),
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isSel
                             ? GlassTheme.cyanAccent
@@ -825,91 +1045,97 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Demo Gig Card
-  Widget _buildDemoGigCard(Gig gig) {
+  // Responsive Demo Gig Card
+  Widget _buildResponsiveGigCard(BuildContext context, Gig gig) {
+    final isMobile = Responsive.isMobile(context);
+
     return GlassContainer(
-      borderRadius: 22,
+      borderRadius: isMobile ? 18 : 22,
       glowColor: gig.status == 'accepted'
           ? GlassTheme.emeraldAccent
           : gig.status == 'countered'
               ? GlassTheme.cyanAccent
               : null,
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(isMobile ? 16 : 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: Poster info + Category + Status Pill
+          // Row 1: Poster info + Category + Status Tag (Wrap enabled for zero overflow)
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: GlassTheme.buttonGradient,
-                    ),
-                    child: Center(
-                      child: Text(
-                        gig.posterAvatar,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
+              Expanded(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: GlassTheme.buttonGradient,
+                      ),
+                      child: Center(
+                        child: Text(
+                          gig.posterAvatar,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    gig.posterName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    gig.posterRating,
-                    style: const TextStyle(
-                      color: GlassTheme.amberAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.op(GlassTheme.violetAccent, 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      gig.category,
+                    Text(
+                      gig.posterName,
                       style: const TextStyle(
-                        color: GlassTheme.violetAccent,
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      gig.posterRating,
+                      style: const TextStyle(
+                        color: GlassTheme.amberAccent,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: GlassTheme.op(GlassTheme.violetAccent, 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        gig.category,
+                        style: const TextStyle(
+                          color: GlassTheme.violetAccent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               _buildStatusTag(gig),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
           // Title
           Text(
             gig.title,
-            style: const TextStyle(
-              fontSize: 18,
+            style: TextStyle(
+              fontSize: isMobile ? 16 : 18,
               fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
@@ -922,43 +1148,47 @@ class _HomeScreenState extends State<HomeScreen> {
             gig.description,
             style: TextStyle(
               fontSize: 13,
-              height: 1.45,
+              height: 1.4,
               color: GlassTheme.op(Colors.white, 0.75),
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // Tags & Timeline
-          Row(
+          // Timeline & Tags
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.timer_outlined,
-                  size: 15, color: GlassTheme.op(Colors.white, 0.5)),
-              const SizedBox(width: 4),
-              Text(
-                'Delivery: ${gig.deliveryTime}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: GlassTheme.op(Colors.white, 0.6),
-                ),
-              ),
-              const SizedBox(width: 16),
-              ...gig.tags.take(3).map((tag) {
-                return Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: GlassTheme.op(Colors.white, 0.05),
-                      borderRadius: BorderRadius.circular(10),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.timer_outlined,
+                      size: 14, color: GlassTheme.op(Colors.white, 0.5)),
+                  const SizedBox(width: 4),
+                  Text(
+                    gig.deliveryTime,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: GlassTheme.op(Colors.white, 0.6),
                     ),
-                    child: Text(
-                      '#$tag',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: GlassTheme.op(Colors.white, 0.55),
-                      ),
+                  ),
+                ],
+              ),
+              ...gig.tags.take(3).map((tag) {
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: GlassTheme.op(Colors.white, 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '#$tag',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: GlassTheme.op(Colors.white, 0.55),
                     ),
                   ),
                 );
@@ -966,14 +1196,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Budget & Platform Fee Transparency Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: GlassTheme.op(Colors.white, 0.05),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: GlassTheme.op(Colors.white, 0.12),
               ),
@@ -984,13 +1214,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Set Amount',
+                    Text('Budget',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: GlassTheme.op(Colors.white, 0.5))),
                     Text('\$${gig.budget.toStringAsFixed(0)}',
                         style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 17,
                             fontWeight: FontWeight.w800,
                             color: Colors.white)),
                   ],
@@ -998,13 +1228,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('Platform Fee (10%)',
+                    Text('Fee (10%)',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: GlassTheme.op(Colors.white, 0.5))),
                     Text('-\$${gig.platformFee.toStringAsFixed(0)}',
                         style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: GlassTheme.amberAccent)),
                   ],
@@ -1012,13 +1242,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Net Freelancer Payout',
+                    Text('Net Payout',
                         style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: GlassTheme.op(Colors.white, 0.5))),
                     Text('\$${gig.netPayout.toStringAsFixed(0)}',
                         style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 17,
                             fontWeight: FontWeight.w800,
                             color: GlassTheme.emeraldAccent)),
                   ],
@@ -1027,48 +1257,51 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // 3 Primary Actions: Accept / Negotiate / Decline
+          // Action Buttons: Accept / Negotiate / Decline (Responsive Layout)
           if (gig.status == 'open') ...[
-            Row(
+            ResponsiveRowColumn(
+              spacing: 8,
+              forceColumn: isMobile,
               children: [
-                Expanded(
-                  child: GlassButton(
-                    text: 'Accept (\$${gig.budget.toStringAsFixed(0)})',
-                    icon: Icons.check_rounded,
-                    height: 42,
-                    gradient: GlassTheme.emeraldGradient,
-                    onPressed: () {
-                      _gigStore.acceptGig(gig.id);
-                      _showToast(
-                        'Gig accepted! \$${gig.budget.toStringAsFixed(0)} funded into escrow.',
-                        GlassTheme.emeraldAccent,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GlassButton(
-                    text: 'Negotiate Amount',
-                    icon: Icons.handshake_outlined,
-                    height: 42,
-                    isPrimary: false,
-                    textColor: GlassTheme.cyanAccent,
-                    onPressed: () => _showNegotiateModal(gig),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                IconButton(
-                  tooltip: 'Decline Gig',
-                  icon: Icon(Icons.close_rounded,
-                      color: Colors.redAccent.withValues(alpha: 0.8),
-                      size: 20),
+                GlassButton(
+                  text: 'Accept (\$${gig.budget.toStringAsFixed(0)})',
+                  icon: Icons.check_rounded,
+                  height: 42,
+                  gradient: GlassTheme.emeraldGradient,
                   onPressed: () {
-                    _gigStore.declineGig(gig.id);
-                    _showToast('Gig declined.', Colors.redAccent);
+                    _gigStore.acceptGig(gig.id);
+                    _showToast(
+                      'Gig accepted! \$${gig.budget.toStringAsFixed(0)} funded into escrow.',
+                      GlassTheme.emeraldAccent,
+                    );
                   },
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GlassButton(
+                        text: 'Negotiate',
+                        icon: Icons.handshake_outlined,
+                        height: 42,
+                        isPrimary: false,
+                        textColor: GlassTheme.cyanAccent,
+                        onPressed: () => _showNegotiateModal(gig),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      tooltip: 'Decline Gig',
+                      icon: Icon(Icons.close_rounded,
+                          color: Colors.redAccent.withValues(alpha: 0.8),
+                          size: 20),
+                      onPressed: () {
+                        _gigStore.declineGig(gig.id);
+                        _showToast('Gig declined.', Colors.redAccent);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1076,14 +1309,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 const Icon(Icons.hourglass_top_rounded,
-                    color: GlassTheme.cyanAccent, size: 18),
+                    color: GlassTheme.cyanAccent, size: 16),
                 const SizedBox(width: 8),
-                Text(
-                  'Counter-offer of \$${gig.counterAmount?.toStringAsFixed(0)} proposed (Net: \$${gig.counterNetPayout.toStringAsFixed(0)}). Awaiting response.',
-                  style: const TextStyle(
-                    color: GlassTheme.cyanAccent,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+                Expanded(
+                  child: Text(
+                    'Counter-offer: \$${gig.counterAmount?.toStringAsFixed(0)} (Payout: \$${gig.counterNetPayout.toStringAsFixed(0)}). Awaiting reply.',
+                    style: const TextStyle(
+                      color: GlassTheme.cyanAccent,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -1092,14 +1327,16 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 const Icon(Icons.verified_user_rounded,
-                    color: GlassTheme.emeraldAccent, size: 18),
+                    color: GlassTheme.emeraldAccent, size: 16),
                 const SizedBox(width: 8),
-                Text(
-                  'Escrow Protected: \$${gig.budget.toStringAsFixed(0)} locked. 10% fee applied on payout.',
-                  style: const TextStyle(
-                    color: GlassTheme.emeraldAccent,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
+                Expanded(
+                  child: Text(
+                    'Escrow Active: \$${gig.budget.toStringAsFixed(0)} secured. 10% fee on release.',
+                    style: const TextStyle(
+                      color: GlassTheme.emeraldAccent,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],
@@ -1109,7 +1346,7 @@ class _HomeScreenState extends State<HomeScreen> {
               'Declined',
               style: TextStyle(
                 color: GlassTheme.op(Colors.white, 0.4),
-                fontSize: 13,
+                fontSize: 12,
               ),
             ),
           ],
@@ -1125,11 +1362,11 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (gig.status) {
       case 'accepted':
         color = GlassTheme.emeraldAccent;
-        label = 'Escrow Funded';
+        label = 'Escrow Held';
         break;
       case 'countered':
         color = GlassTheme.cyanAccent;
-        label = 'In Negotiation';
+        label = 'Negotiating';
         break;
       case 'declined':
         color = Colors.redAccent;
@@ -1137,21 +1374,21 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       default:
         color = GlassTheme.amberAccent;
-        label = 'Open for Offers';
+        label = 'Open';
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: GlassTheme.op(color, 0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: GlassTheme.op(color, 0.4)),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: color,
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),
